@@ -1,13 +1,17 @@
 
+require 'logbert/message'
+require 'handlers'
+
 module Logbert
   
   class Logger
     
-    attr_reader :factory, :name
+    attr_reader :factory, :name, :handlers
     
     def initialize(factory, name)
       @factory = factory
       @name = name
+      @handlers = []
     end
     
     def level_inherited?
@@ -56,13 +60,14 @@ module Logbert
       self.log(Logbert::Levels::FATAL, msg)
     end
     
-    def log(level, msg)
+    def log(level, content)
       if level >= @level
-        puts "[#{Time.now}]: #{msg}"
+        message = Logbert::Message.create level, content
+        @handlers.each{|h| h.publish message}
       end
     end
 
   end
 
-
 end
+

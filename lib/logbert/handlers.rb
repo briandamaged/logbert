@@ -4,6 +4,7 @@ require 'logbert/formatters'
 module Logbert
   module Handlers
     
+        
     class BaseHandler
       
       def formatter
@@ -20,7 +21,7 @@ module Logbert
       
       
       def emit(output)
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
     end
@@ -38,6 +39,7 @@ module Logbert
       end
 
     end
+
 
   end
 end

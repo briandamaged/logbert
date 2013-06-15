@@ -5,9 +5,28 @@ module Logbert
   
   module Formatters
     
-    class Simple
+    class Formatter
       def format(msg)
-        "[#{msg.time}]: #{msg.content}"
+        raise NotImplementedError
+      end
+    end
+    
+    class SimpleFormatter
+      def format(msg)
+        "[#{msg.time} #{msg.pid}]: #{msg.content}"
+      end
+    end
+    
+    
+    class ProcFormatter
+      attr_accessor :proc
+
+      def initialize(&block)
+        @proc = &block
+      end
+      
+      def format(msg)
+        @proc.call msg
       end
     end
 

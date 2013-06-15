@@ -1,6 +1,6 @@
 
 require 'logbert/message'
-require 'handlers'
+require 'logbert/handlers'
 
 module Logbert
   
@@ -19,7 +19,7 @@ module Logbert
     end
     
     def level
-      @level || parent.level
+      @level || self.parent.level
     end
     
     def level=(value)
@@ -61,7 +61,7 @@ module Logbert
     end
     
     def log(level, content)
-      if level >= @level
+      if level >= self.level
         message = Logbert::Message.create level, content
         @handlers.each{|h| h.publish message}
       end

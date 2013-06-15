@@ -22,7 +22,7 @@ module Logbert
       attr_accessor :proc
 
       def initialize(&block)
-        @proc = &block
+        @proc = block
       end
       
       def format(msg)

@@ -8,7 +8,7 @@ module Logbert
     class BaseHandler
       
       def formatter
-        @formatter ||= Logbert::Formatters::Simple.new
+        @formatter ||= Logbert::Formatters::SimpleFormatter.new
       end
       
       def formatter=(value)

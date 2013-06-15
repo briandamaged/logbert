@@ -1,13 +1,8 @@
 
+require 'logbert/message'
+require 'logbert/levels'
+
 module Logbert
-
-  OFF   = 0
-  DEBUG = 10
-  INFO  = 20
-  WARN  = 30
-  ERROR = 40
-  FATAL = 50
-
 
   NameSeparator = "::"
   
@@ -19,9 +14,6 @@ module Logbert
     name_or_module.to_s
   end
 
-
-
-  Message = Struct.new :level, :content, :time
 
   class Logger
     
@@ -37,7 +29,7 @@ module Logbert
     end
     
     def level
-      @level or parent.level
+      @level || parent.level
     end
     
     def level=(value)
@@ -59,23 +51,23 @@ module Logbert
     
 
     def debug(msg)
-      self.log(Logbert::DEBUG, msg)
+      self.log(Logbert::Levels::DEBUG, msg)
     end
 
     def info(msg)
-      self.log(Logbert::INFO, msg)
+      self.log(Logbert::Levels::INFO, msg)
     end
     
     def warn(msg)
-      self.log(Logbert::WARN, msg)
+      self.log(Logbert::Levels::WARN, msg)
     end
     
     def error(msg)
-      self.log(Logbert::ERROR, msg)
+      self.log(Logbert::Levels::ERROR, msg)
     end
     
     def fatal(msg)
-      self.log(Logbert::FATAL, msg)
+      self.log(Logbert::Levels::FATAL, msg)
     end
     
 
@@ -92,7 +84,7 @@ module Logbert
     
     def initialize
       @inventory = {}
-      self.root.level = Logbert::WARN
+      self.root.level = Logbert::Levels::WARN
     end
     
     def [](name_or_module)

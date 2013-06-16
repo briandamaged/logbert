@@ -1,6 +1,7 @@
 
 require 'logbert/naming'
 require 'logbert/logger'
+require 'logbert/levels'
 
 module Logbert
 

@@ -35,6 +35,10 @@ describe "Logbert.name_for" do
   it "removes extra '/' character from Strings" do
     Logbert.name_for("///fwu//ha/ha///").should == "fwu/ha/ha"
   end
+  
+  it "converts symbols to strings" do
+    Logbert.name_for(:foo).should == "foo"
+  end
 
   
 end

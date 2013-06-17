@@ -13,7 +13,7 @@ module Logbert
     
     class SimpleFormatter < Formatter
       def format(msg)
-        "[#{msg.time} #{msg.pid}]: #{msg.content}"
+        "[#{msg.time} pid=#{msg.pid} logger=#{msg.logger}] : #{msg.content}"
       end
     end
     

@@ -17,6 +17,16 @@ describe Logbert::LoggerFactory do
       factory[Logbert::LoggerFactory].should_not === factory["Logbert"]
     end
     
+    
+    it "ensures that the root logger and the unnamed logger are the same" do
+      factory[''].should === factory.root
+    end
+    
   end
+  
+  
+  
+  
+  
   
 end

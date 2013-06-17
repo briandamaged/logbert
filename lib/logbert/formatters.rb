@@ -32,7 +32,7 @@ module Logbert
     end
     
     def self.fmt(&block)
-      ProcFormatter(&block)
+      ProcFormatter.new(&block)
     end
 
   end

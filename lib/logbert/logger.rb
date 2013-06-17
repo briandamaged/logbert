@@ -9,8 +9,8 @@ module Logbert
     attr_reader :factory, :name, :handlers
     
     def initialize(factory, name)
-      @factory = factory
-      @name = name
+      @factory  = factory
+      @name     = name.dup.freeze
       @handlers = []
     end
     
@@ -40,8 +40,13 @@ module Logbert
     end
     
     def log(level, content = nil, &block)
-      message = Logbert::Message.create(level, content, &block)
+      message = Logbert::Message.create(self, level, content, &block)
       handle_message(message)
+    end
+    
+    
+    def to_s
+      @name
     end
     
     protected

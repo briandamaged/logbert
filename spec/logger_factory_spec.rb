@@ -5,7 +5,7 @@ describe Logbert::LoggerFactory do
   
   let(:factory){Logbert::LoggerFactory.new}
   
-  context :"[]" do
+  context "#[]" do
     it "maps each name to a distinct Logger instance" do
       factory["foo/bar"].should === factory["foo/bar"]
       factory["foo/bar"].should_not === factory["foo/bar/quux"]
@@ -25,7 +25,21 @@ describe Logbert::LoggerFactory do
   end
   
   
-  
+  context "#parent_for" do
+    
+    it "returns the parent for the specified logger" do
+      factory.parent_for(factory["foo/bar"]).should === factory["foo"]
+    end
+    
+    it "returns the root Logger when given a Logger at the bottom of the hierarchy" do
+      factory.parent_for(factory["foo"]).should === factory.root
+    end
+    
+    it "returns nil when given the root Logger" do
+      factory.parent_for(factory.root).should be_nil
+    end
+    
+  end
   
   
   

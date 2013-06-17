@@ -61,10 +61,19 @@ module Logbert
     end
     
     def log(level, content)
-      if level >= self.level
-        message = Logbert::Message.create level, content
+      message = Logbert::Message.create level, content
+      handle_message(message)
+    end
+    
+    protected
+    
+    def handle_message(message)
+      if message.level >= self.level
         @handlers.each{|h| h.publish message}
       end
+
+      p = self.parent
+      p.handle_message(message) if p
     end
 
   end

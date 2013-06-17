@@ -39,29 +39,8 @@ module Logbert
       self.factory.root
     end
     
-
-    def debug(msg)
-      self.log(Logbert::Levels::DEBUG, msg)
-    end
-
-    def info(msg)
-      self.log(Logbert::Levels::INFO, msg)
-    end
-    
-    def warn(msg)
-      self.log(Logbert::Levels::WARN, msg)
-    end
-    
-    def error(msg)
-      self.log(Logbert::Levels::ERROR, msg)
-    end
-    
-    def fatal(msg)
-      self.log(Logbert::Levels::FATAL, msg)
-    end
-    
-    def log(level, content)
-      message = Logbert::Message.create level, content
+    def log(level, content = nil, &block)
+      message = Logbert::Message.create(level, content, &block)
       handle_message(message)
     end
     

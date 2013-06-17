@@ -9,12 +9,15 @@ module Logbert
     
     def initialize
       @inventory = {}
-      self.root.level = Logbert::Levels::WARN
+      self.root.level = Logbert::Levels[:warn]
     end
     
     def [](name_or_module)
       name = Logbert.name_for(name_or_module)
-      @inventory[name] ||= Logger.new(self, name)
+      @inventory[name] ||= begin
+        l = Logger.new(self, name)
+        l.extend Logbert::LevelsMixin
+      end
     end
     
     def root

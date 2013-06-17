@@ -1,12 +1,26 @@
 
 module Logbert
-  module Levels
-    OFF   = 0
-    DEBUG = 10
-    INFO  = 20
-    WARN  = 30
-    ERROR = 40
-    FATAL = 50
-    ALL   = 100
+
+  Levels = {
+    off:    0,
+    debug: 10,
+    info:  20,
+    warn:  30,
+    error: 40,
+    fatal: 50,
+    all:   100
+  }
+
+  
+  
+  module LevelsMixin
+    
+    Logbert::Levels.each do |level_name, level_value|
+      define_method level_name do |content = nil, &block|
+        self.log(level_value, content, &block)
+      end
+    end
+    
   end
+
 end

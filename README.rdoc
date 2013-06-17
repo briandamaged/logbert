@@ -1,0 +1,67 @@
+= Logbert
+
+Specify the logging behaviors without mucking with your code!
+
+== Usage
+
+=== Creating Loggers
+
+Logbert always defines a root logger for you.  So, the easiest way to begin using Logbert is to just latch on to this logger:
+
+   require 'logbert'
+   LOG = Logbert.root
+
+However, if you'd like to take advantage of the logging hierarchy, then you can create a separate Logger for each class / module in your code.  For instance:
+
+  require 'logbert'
+
+  class MyClass
+    LOG = Logbert[self]
+
+  end
+
+
+If you don't want your Logger hierarchy to mimic your class / module hierarchy, then you can just specify your own hierarchy instead:
+
+
+   require 'logbert'
+
+   class MyOtherClass
+      LOG = Logbert["foo/bar"]
+   end
+
+
+Once a Logger has been created, it will persist for the lifetime of the application.  For instance:
+
+   require 'logbert'
+
+   if Logbert["foo"] === Logbert["foo"]
+     puts "It's the same Logger instance!"
+   end
+
+   if Logbert["foo"] === Logbert["foo/bar"]
+     puts "This message will never be printed"
+   end
+
+
+=== Configuring Output Handlers
+
+So far, none of the Loggers that we have created will actually log anything because we have not configured any output handlers.  Let's fix that:
+
+   require 'logbert'
+
+   Logbert["foo"].handlers << Logbert::Handlers::StreamHandler.new($stderr)
+
+
+Now the "foo" Logger and will write all of its messages to $stderr.  Note, however, that we have still not defined any handlers for the root logger.  This means that messages sent to the root logger will not be recorded anywhere:
+
+   Logbert["foo"].warn "This will get recorded"
+   Logbert.root.warn   "This will NOT get recorded"
+
+
+By default, Loggers also inform their parents of any log messages that they receive.  Therefore:
+
+   Logbert["foo/bar"].warn "This will get recorded by Logbert['foo']'s handlers"
+
+
+

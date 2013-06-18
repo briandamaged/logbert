@@ -2,13 +2,11 @@
 module Logbert
 
   DefaultLevels = {
-    all:        0,
     debug:    100,
     info:     200,
     warning:  300,
     error:    400,
     fatal:    500,
-    off:     1000,
   }
 
 

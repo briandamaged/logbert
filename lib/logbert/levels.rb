@@ -20,7 +20,20 @@ module Logbert
     def initialize
       @name_to_level  = {}
       @value_to_level = {}
+
+      @quick_lookup   = {}
     end
+    
+    def names
+      @name_to_level.keys
+    end
+    
+    def values
+      @value_to_level.keys
+    end
+    
+    
+
     
     def define_level(name, value)
       raise ArgumentError, "The Level's name must be a Symbol" unless name.instance_of? Symbol
@@ -31,10 +44,12 @@ module Logbert
       raise KeyError, "A Level with that value is already defined: #{value}" if @value_to_level.has_key? value
       
       level = Level.new(name, value)
+
       @name_to_level[name]   = level
       @value_to_level[value] = level
+      @quick_lookup[name] = @quick_lookup[value] = @quick_lookup[level] = level
       
-      self.create_logging_method(level)
+      self.create_logging_method(name)
     end
     
     def levels
@@ -42,31 +57,27 @@ module Logbert
     end
     
     
-    def level_for(x)
-      if x.is_a? Logbert::Level
-        x
-      elsif x.is_a? Numeric
-        self.level_for_value(x)
-      else
-        self.level_for_name(x)
+    def [](x)
+      @quick_lookup[x] or begin
+        if x.is_a? Integer
+          # Return either the pre-defined level, or produce a virtual level.
+          level = @value_to_level[x] || Logbert::Level.new("LEVEL_#{x}".to_sym, x)
+          return level
+        elsif x.is_a? String
+          level = @name_to_level[x.to_sym]
+          return level if level
+        end
+        
+        raise KeyError, "No Level could be found for input: #{x}"
       end
-    end
-
-    def level_for_name(name)
-      @name_to_level.fetch(name.to_sym)
-    end
-    
-    def level_for_value(value)
-      value = Integer(value)
-      @value_to_level[value] or Logbert::Level.new("LEVEL_#{value}".to_sym, value)
     end
 
 
     protected
     
-    def create_logging_method(level)
-      define_method level.name do |content = nil, &block|
-        self.log(level, content, &block)
+    def create_logging_method(level_name)
+      define_method level_name do |content = nil, &block|
+        self.log(level_name, content, &block)
       end
     end
 

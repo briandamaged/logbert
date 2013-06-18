@@ -7,16 +7,19 @@ module Logbert
 
   class LoggerFactory
     
-    def initialize
+    attr_reader :level_manager
+    
+    def initialize(level_manager = LevelManager.new)
       @inventory = {}
-      self.root.level = Logbert::Levels[:warn]
+      @level_manager  = level_manager
+      self.root.level = @level_manager[:warn]
     end
     
     def [](name_or_module)
       name = Logbert.name_for(name_or_module)
       @inventory[name] ||= begin
-        l = Logger.new(self, name)
-        l.extend Logbert::LevelsMixin
+        l = Logger.new(self, @level_manager, name)
+        l.extend @level_manager
       end
     end
     

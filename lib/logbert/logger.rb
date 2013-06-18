@@ -6,10 +6,12 @@ module Logbert
   
   class Logger
     
-    attr_reader :factory, :name, :handlers
+    attr_reader :factory, :level_manager, :name, :handlers
     
-    def initialize(factory, name)
-      @factory  = factory
+    def initialize(factory, level_manager, name)
+      @factory       = factory
+      @level_manager = level_manager
+
       @name     = name.dup.freeze
       @handlers = []
     end
@@ -22,8 +24,8 @@ module Logbert
       @level || self.parent.level
     end
     
-    def level=(value)
-      @level = value
+    def level=(x)
+      @level = @level_manager[x]
     end
 
 
@@ -40,7 +42,7 @@ module Logbert
     end
     
     def log(level, content = nil, &block)
-      message = Logbert::Message.create(self, level, content, &block)
+      message = Logbert::Message.create(self, @level_manager[level], content, &block)
       handle_message(message)
     end
     
@@ -50,9 +52,9 @@ module Logbert
     end
     
     protected
-    
+
     def handle_message(message)
-      if message.level >= self.level
+      if message.level.value >= self.level.value
         @handlers.each{|h| h.publish message}
       end
 

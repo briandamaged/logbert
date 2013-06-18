@@ -15,7 +15,7 @@ module Logbert
   end
 
   # This class doubles as a mixin.  Bazinga!
-  class LevelsManager < Module
+  class LevelManager < Module
     
     def initialize
       @name_to_level  = {}
@@ -23,7 +23,7 @@ module Logbert
     end
     
     def define_level(name, value)
-      raise ArgumentError, "The Level's name must be a Symbol" unless name.is_a? Symbol
+      raise ArgumentError, "The Level's name must be a Symbol" unless name.instance_of? Symbol
       raise ArgumentError, "The Level's value must be an Integer" unless value.is_a? Integer
       
       # TODO: Verify that the name/value are not already taken
@@ -33,6 +33,8 @@ module Logbert
       level = Level.new(name, value)
       @name_to_level[name]   = level
       @value_to_level[value] = level
+      
+      self.create_logging_method(level)
     end
     
     def levels
@@ -41,10 +43,12 @@ module Logbert
     
     
     def level_for(x)
-      if x.respond_to? :to_sym
-        self.level_for_name(x)
-      else
+      if x.is_a? Logbert::Level
+        x
+      elsif x.is_a? Numeric
         self.level_for_value(x)
+      else
+        self.level_for_name(x)
       end
     end
 
@@ -54,9 +58,19 @@ module Logbert
     
     def level_for_value(value)
       value = Integer(value)
-      @value_to_level[value] or Logbert::Level.new("LEVEL_#{value}", value)
+      @value_to_level[value] or Logbert::Level.new("LEVEL_#{value}".to_sym, value)
     end
+
+
+    protected
     
+    def create_logging_method(level)
+      define_method level.name do |content = nil, &block|
+        self.log(level, content, &block)
+      end
+    end
+
+
   end
   
   

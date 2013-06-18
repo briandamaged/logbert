@@ -13,7 +13,8 @@ module Logbert
     
     class SimpleFormatter < Formatter
       def format(msg)
-        "[#{msg.time} pid=#{msg.pid} logger=#{msg.logger}] : #{msg.content}"
+        level = msg.level.to_s.upcase.ljust(8)
+        "#{level} [time='#{msg.time}' pid='#{msg.pid}' logger='#{msg.logger}'] : #{msg.content}"
       end
     end
     

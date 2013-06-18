@@ -12,7 +12,7 @@ module Logbert
     def initialize(level_manager = LevelManager.new)
       @inventory = {}
       @level_manager  = level_manager
-      self.root.level = @level_manager[:warn]
+      self.root.level = @level_manager[:warning]
     end
     
     def [](name_or_module)

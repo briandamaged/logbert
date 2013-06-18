@@ -49,7 +49,9 @@ module Logbert
 
     
     def define_level(name, value)
-      raise ArgumentError, "The Level's name must be a Symbol" unless name.instance_of? Symbol
+      unless name.instance_of?(Symbol) or name.instance_of?(String)
+        raise ArgumentError, "The Level's name must be a Symbol or a String"
+      end
       raise ArgumentError, "The Level's value must be an Integer" unless value.is_a? Integer
       
       # TODO: Verify that the name/value are not already taken

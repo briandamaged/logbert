@@ -45,7 +45,9 @@ module Logbert
       @value_to_level.keys
     end
     
-    
+    def levels
+      @name_to_level.values
+    end    
 
     
     def define_level(name, value)
@@ -63,13 +65,10 @@ module Logbert
       @quick_lookup[name] = @quick_lookup[value] = @quick_lookup[level] = level
       
       self.create_logging_method(name)
+      self.create_predicate_method(name, value)
     end
-    
-    def levels
-      @name_to_level.values
-    end
-    
-    
+
+
     def [](x)
       @quick_lookup[x] or begin
         if x.is_a? Integer
@@ -91,6 +90,12 @@ module Logbert
     def create_logging_method(level_name)
       define_method level_name do |content = nil, &block|
         self.log(level_name, content, &block)
+      end
+    end
+    
+    def create_predicate_method(level_name, level_value)
+      define_method "#{level_name}?" do
+         self.level.value <= level_value
       end
     end
 

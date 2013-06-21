@@ -1,6 +1,32 @@
 = Logbert
 
-Specify the logging behaviors without mucking with your code!
+Just your friendly, neighborhood logger!
+
+== Why another logger?
+
+Traditional Ruby loggers make it difficult to change your logging behaviors without also
+modifying your application's code.  For example:
+
+   require 'logger'
+
+   # This does not belong here.  Why does my application
+   # care that the messages will be streamed to $stdout ?
+   LOG = Logger.new $stderr
+   
+   # This does not belong here.  Why does my application
+   # care that messages will only be recorded when they
+   # are at WARN level or higher?
+   LOG.level = Logger::WARN
+
+   # This is all that my application should care about.
+   LOG.warn "Umm... something weird happened..."
+
+
+Logbert aims to establish a clear separation between "what" is logged versus "how"
+it is logged.  Thus, the application only needs to focus on "what" to log.  Decisions
+about "how" to filter log messages and "how" to persist them can be specified from
+outside of the application.
+
 
 == Usage
 

@@ -41,8 +41,10 @@ module Logbert
       self.factory.root
     end
     
-    def log(level, content = nil, &block)
-      message = Logbert::Message.create(self, @level_manager[level], content, &block)
+    def log(level, *args, &block)
+      content, options = self.prepare_message_args(*args, &block)
+
+      message = Logbert::Message.create(self, @level_manager[level], options, content, &block)
       handle_message(message)
     end
     
@@ -52,6 +54,24 @@ module Logbert
     end
     
     protected
+    
+    
+    # This method will be unnecessary once we upgrade to Ruby 2.x
+    def prepare_message_args(*args, &block)
+      if args.size == 0
+        return [nil, {}]
+      elsif args.size == 1
+        if block_given?
+          return [nil, args[0]]
+        else
+          return [args[0], {}]
+        end
+      elsif args.size == 2
+        return [args[0], args[1]]
+      else
+        raise ArgumentError, "wrong number of arguments (#{args.size} for 0..2)"
+      end
+    end
 
     def handle_message(message)
       if message.level.value >= self.level.value

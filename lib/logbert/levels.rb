@@ -88,8 +88,8 @@ module Logbert
     protected
     
     def create_logging_method(level_name)
-      define_method level_name do |content = nil, &block|
-        self.log(level_name, content, &block)
+      define_method level_name do |*args, &block|
+        self.log(level_name, *args, &block)
       end
     end
     

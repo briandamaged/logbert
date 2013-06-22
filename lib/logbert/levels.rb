@@ -50,8 +50,10 @@ module Logbert
     end
     
     def define_level(name, value)
-      name = name.to_sym
+      raise ArgumentError, "The Level's name must implement #to_sym" unless name.respond_to? :to_sym
       raise ArgumentError, "The Level's value must be an Integer" unless value.is_a? Integer
+      
+      name = name.to_sym
       
       raise KeyError, "A Level with that name is already defined:  #{name}"  if @quick_lookup.has_key? name
       raise KeyError, "A Level with that value is already defined: #{value}" if @quick_lookup.has_key? value
@@ -63,10 +65,14 @@ module Logbert
       
       self.create_logging_method(name)
       self.create_predicate_method(name, value)
+      
+      return level
     end
     
     
     def alias_level(alias_name, level)
+      raise ArgumentError, "The Level alias must implement #to_sym: #{alias_name}" unless alias_name.respond_to? :to_sym
+      
       alias_name = alias_name.to_sym
       
       preexisting_level = @quick_lookup[alias_name]
@@ -74,12 +80,14 @@ module Logbert
         raise KeyError, "The alias is already taken: #{alias_name} -> #{preexisting_level}"
       end
       
-      level      = self.level_for(level, false)
+      level = self.level_for(level, false)
 
       @level_to_aliases[level] << alias_name
       @quick_lookup[alias_name] = level
       
       alias_method alias_name, level.name
+      
+      return level
     end
 
 

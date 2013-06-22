@@ -21,14 +21,19 @@ module Logbert
     def to_s
       @name.to_s
     end
+    
+    def inspect
+      "Level(#{@name.inspect}, #{@value})"
+    end
   end
 
   # This class doubles as a mixin.  Bazinga!
   class LevelManager < Module
     
     def initialize
-      @name_to_level  = {}
-      @value_to_level = {}
+      @name_to_level    = {}
+      @level_to_aliases = {}
+      @value_to_level   = {}
 
       @quick_lookup   = {}
       
@@ -38,6 +43,11 @@ module Logbert
     
     def names
       @name_to_level.keys
+    end
+    
+    def aliases_for(level)
+      level = self.level_for(level)
+      @level_to_aliases.fetch(level)
     end
     
     def values
@@ -61,8 +71,10 @@ module Logbert
       
       level = Level.new(name, value)
 
-      @name_to_level[name]   = level
-      @value_to_level[value] = level
+      @name_to_level[name]     = level
+      @value_to_level[value]   = level
+      @level_to_aliases[level] = [name]
+
       @quick_lookup[name] = @quick_lookup[value] = @quick_lookup[level] = level
       
       self.create_logging_method(name)
@@ -70,24 +82,28 @@ module Logbert
     end
     
     
-    def alias_level(alias_name, level_name)
-      level_name = level_name.to_sym
+    def alias_level(alias_name, level)
       alias_name = alias_name.to_sym
+      level      = self.level_for(level, false)
       
-      level = @name_to_level.fetch(level_name)
+      @level_to_aliases[level] << alias_name
+      @quick_lookup[alias_name] = level
       
-      @name_to_level[alias_name] = level
-      
-      alias_method alias_name, level_name
+      alias_method alias_name, level.name
     end
 
 
-    def [](x)
+    def level_for(x, allow_virtual_levels = true)
       @quick_lookup[x] or begin
         if x.is_a? Integer
           # Return either the pre-defined level, or produce a virtual level.
-          level = @value_to_level[x] || Logbert::Level.new("LEVEL_#{x}".to_sym, x)
-          return level
+          level = @value_to_level[x]
+
+          if level
+            return level
+          elsif allow_virtual_levels
+            return Logbert::Level.new("LEVEL_#{x}".to_sym, x)
+          end
         elsif x.is_a? String
           level = @name_to_level[x.to_sym]
           return level if level
@@ -96,6 +112,8 @@ module Logbert
         raise KeyError, "No Level could be found for input: #{x}"
       end
     end
+    
+    alias :[] :level_for
 
 
     protected

@@ -31,9 +31,7 @@ module Logbert
   class LevelManager < Module
     
     def initialize
-      @name_to_level    = {}
       @level_to_aliases = {}
-      @value_to_level   = {}
 
       @quick_lookup   = {}
       
@@ -41,23 +39,15 @@ module Logbert
       self.alias_level :warn, :warning
     end
     
-    def names
-      @name_to_level.keys
-    end
-    
-    def aliases_for(level)
-      level = self.level_for(level)
-      @level_to_aliases.fetch(level)
-    end
-    
-    def values
-      @value_to_level.keys
-    end
-    
+
     def levels
       @name_to_level.values
     end    
 
+    def aliases_for(level)
+      level = self.level_for(level)
+      @level_to_aliases.fetch(level)
+    end
     
     def define_level(name, value)
       unless name.instance_of?(Symbol) or name.instance_of?(String)
@@ -71,11 +61,8 @@ module Logbert
       
       level = Level.new(name, value)
 
-      @name_to_level[name]     = level
-      @value_to_level[value]   = level
-      @level_to_aliases[level] = [name]
-
       @quick_lookup[name] = @quick_lookup[value] = @quick_lookup[level] = level
+      @level_to_aliases[level] = [name]
       
       self.create_logging_method(name)
       self.create_predicate_method(name, value)
@@ -85,7 +72,7 @@ module Logbert
     def alias_level(alias_name, level)
       alias_name = alias_name.to_sym
       level      = self.level_for(level, false)
-      
+
       @level_to_aliases[level] << alias_name
       @quick_lookup[alias_name] = level
       
@@ -96,25 +83,17 @@ module Logbert
     def level_for(x, allow_virtual_levels = true)
       @quick_lookup[x] or begin
         if x.is_a? Integer
-          # Return either the pre-defined level, or produce a virtual level.
-          level = @value_to_level[x]
-
-          if level
-            return level
-          elsif allow_virtual_levels
-            return Logbert::Level.new("LEVEL_#{x}".to_sym, x)
-          end
+          return Logbert::Level.new("LEVEL_#{x}".to_sym, x) if allow_virtual_levels
         elsif x.is_a? String
           level = @name_to_level[x.to_sym]
           return level if level
         end
-        
+
         raise KeyError, "No Level could be found for input: #{x}"
       end
     end
     
     alias :[] :level_for
-
 
     protected
     

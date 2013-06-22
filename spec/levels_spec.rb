@@ -45,4 +45,57 @@ describe Logbert::LevelManager do
   end
   
   
+  
+  context "#alias_level" do
+
+    context "when the Level :foo is already defined" do
+      
+      before do
+        level_manager.define_level(:foo, 123)
+      end
+      
+      it "allows the alias to be specified as a String" do
+        level_manager.alias_level("bar", :foo).should be_a(Logbert::Level)
+        level_manager[:bar].should === level_manager[:foo]
+      end
+      
+      it "allows the alias to be specified as a Symbol" do
+        level_manager.alias_level(:bar, :foo).should be_a(Logbert::Level)
+        level_manager[:bar].should === level_manager[:foo]
+      end
+      
+      it "raises an ArgumentError when the alias cannot be converted to a Symbol" do
+        expect{level_manager.alias_level(123, :foo)}.to raise_exception(ArgumentError)
+      end
+      
+      it "allows the level to be identified by name" do
+        level_manager.alias_level(:bar, :foo)
+        level_manager[:bar].should === level_manager[:foo]
+      end
+      
+      
+      it "allows the level to be identified by value" do
+        level_manager.alias_level(:bar, 123)
+        level_manager[:bar].should === level_manager[:foo]
+      end
+      
+      it "allows the Level to be aliased directly" do
+        level = level_manager[:foo]
+        level_manager.alias_level(:bar, level)
+        
+        level_manager[:bar].should === level_manager[:foo]
+      end
+            
+    end
+
+
+    it "raises a KeyError when the Level cannot be identified" do
+      expect{level_manager.alias_level(:bar, :what)}.to raise_exception(KeyError)
+    end
+
+  end
+  
+  
+  
+  
 end

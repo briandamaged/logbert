@@ -41,6 +41,20 @@ describe Logbert::LevelManager do
       expect{level_manager.define_level(:bar, 123)}.to raise_exception(KeyError)
     end
     
+    it "creates a logging shortcut method with the same name as the Logger" do
+      level_manager.instance_methods.should_not include(:foo)
+      
+      level_manager.define_level(:foo, 123)
+      level_manager.instance_methods.should include(:foo)
+    end
+    
+    
+    it "creates a logging predicate method with the same name as the Logger" do
+      level_manager.instance_methods.should_not include(:foo?)
+      
+      level_manager.define_level(:foo, 123)
+      level_manager.instance_methods.should include(:foo?)
+    end
     
   end
   

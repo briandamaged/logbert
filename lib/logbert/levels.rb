@@ -33,6 +33,7 @@ module Logbert
       @quick_lookup   = {}
       
       Logbert::DefaultLevels.each{|name, value| self.define_level(name, value)}
+      self.alias_level :warn, :warning
     end
     
     def names
@@ -66,6 +67,18 @@ module Logbert
       
       self.create_logging_method(name)
       self.create_predicate_method(name, value)
+    end
+    
+    
+    def alias_level(alias_name, level_name)
+      level_name = level_name.to_sym
+      alias_name = alias_name.to_sym
+      
+      level = @name_to_level.fetch(level_name)
+      
+      @name_to_level[alias_name] = level
+      
+      alias_method alias_name, level_name
     end
 
 

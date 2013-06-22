@@ -135,6 +135,46 @@ describe Logbert::LevelManager do
   end
   
   
+  context "#levels" do
+    
+    # TODO: First, refactor constructor to produce an empty LevelManager instance
+    it "returns the list of levels supported by the LevelManager instance"
+    
+  end
+
   
+  
+  context "#aliases_for" do
+
+
+    it "returns the list of names that identify the specified level" do
+      level = level_manager.define_level(:foo, 12345)
+      
+      [level, :foo, 12345].each do |foo|
+        level_manager.aliases_for(foo).should == [:foo]
+      end
+      
+      level_manager.alias_level(:bar, :foo)
+      level_manager.alias_level(:quux, :foo)
+      
+      [level, :foo, 12345].each do |foo|
+        aliases = level_manager.aliases_for(foo)
+        
+        aliases.size.should == 3
+        aliases.should include(:foo, :bar, :quux)
+      end
+    end
+
+    
+    it "raises a KeyError when the specified Level cannot be identified" do
+      expect{ level_manager.aliases_for(:foo) }.to raise_exception(KeyError)
+      expect{ level_manager.aliases_for(1535) }.to raise_exception(KeyError)
+      
+      # This Level is not managed by the LevelManager, so it will fail the lookup
+      l = Logbert::Level.new(:debug, "12345")
+      expect{ level_manager.aliases_for(l) }.to raise_exception(KeyError)
+    end
+    
+  end
   
 end

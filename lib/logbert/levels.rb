@@ -96,8 +96,8 @@ module Logbert
       @quick_lookup[x] or begin
         if x.is_a? Integer
           return Logbert::Level.new("LEVEL_#{x}".to_sym, x) if allow_virtual_levels
-        elsif x.is_a? String
-          level = @name_to_level[x.to_sym]
+        elsif x.respond_to? :to_sym
+          level = @quick_lookup[x.to_sym]
           return level if level
         end
 

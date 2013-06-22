@@ -41,8 +41,8 @@ module Logbert
     
 
     def levels
-      @name_to_level.values
-    end    
+      @level_to_aliases.keys
+    end
 
     def aliases_for(level)
       level = self.level_for(level)
@@ -50,14 +50,11 @@ module Logbert
     end
     
     def define_level(name, value)
-      unless name.instance_of?(Symbol) or name.instance_of?(String)
-        raise ArgumentError, "The Level's name must be a Symbol or a String"
-      end
+      name = name.to_sym
       raise ArgumentError, "The Level's value must be an Integer" unless value.is_a? Integer
       
-      # TODO: Verify that the name/value are not already taken
-      raise KeyError, "A Level with that name is already defined: #{name}" if @name_to_level.has_key? name
-      raise KeyError, "A Level with that value is already defined: #{value}" if @value_to_level.has_key? value
+      raise KeyError, "A Level with that name is already defined:  #{name}"  if @quick_lookup.has_key? name
+      raise KeyError, "A Level with that value is already defined: #{value}" if @quick_lookup.has_key? value
       
       level = Level.new(name, value)
 
@@ -71,6 +68,12 @@ module Logbert
     
     def alias_level(alias_name, level)
       alias_name = alias_name.to_sym
+      
+      preexisting_level = @quick_lookup[alias_name]
+      if preexisting_level
+        raise KeyError, "The alias is already taken: #{alias_name} -> #{preexisting_level}"
+      end
+      
       level      = self.level_for(level, false)
 
       @level_to_aliases[level] << alias_name

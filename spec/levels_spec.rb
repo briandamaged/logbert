@@ -85,9 +85,34 @@ describe Logbert::LevelManager do
         
         level_manager[:bar].should === level_manager[:foo]
       end
-            
+      
+      
+      it "raises a KeyError when an existing Level is already defined by the desired alias" do
+        expect{level_manager.alias_level(:foo, :foo)}.to raise_exception(KeyError)
+        
+        level_manager.alias_level(:bar, :foo)
+        expect{level_manager.alias_level(:bar, :foo)}.to raise_exception(KeyError)
+        expect{level_manager.alias_level(:foo, :bar)}.to raise_exception(KeyError)
+      end
+      
+      it "creates a logging shortcut method with the same name as the alias" do
+        level_manager.instance_methods.should_not include(:bar)
+        
+        level_manager.alias_level(:bar, :foo)
+        level_manager.instance_methods.should include(:bar)
+      end
+      
+      
+      it "creates a predicate method with the same name as the alias" do
+        level_manager.instance_methods.should_not include(:bar?)
+        
+        level_manager.alias_level(:bar, :foo)
+        level_manager.instance_methods.should include(:bar?)
+      end
+      
     end
 
+    
 
     it "raises a KeyError when the Level cannot be identified" do
       expect{level_manager.alias_level(:bar, :what)}.to raise_exception(KeyError)

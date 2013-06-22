@@ -86,6 +86,7 @@ module Logbert
       @quick_lookup[alias_name] = level
       
       alias_method alias_name, level.name
+      alias_method "#{alias_name}?", "#{level.name}?"
       
       return level
     end

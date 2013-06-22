@@ -43,8 +43,16 @@ module Logbert
     
     def log(level, *args, &block)
       content, options = self.prepare_message_args(*args, &block)
+      
+      exception = options[:exc_info]
+      if exception
+        # If the user passed in an exception, then use that one.
+        # Otherwise, check the magic $! variable to see if an
+        # exception is currently being handled.
+        exception = $! unless exception.is_a? Exception
+      end
 
-      message = Logbert::Message.create(self, @level_manager[level], options, content, &block)
+      message = Logbert::Message.create(self, @level_manager[level], exception, options, content, &block)
       handle_message(message)
     end
     

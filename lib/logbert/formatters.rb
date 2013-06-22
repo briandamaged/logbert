@@ -4,7 +4,7 @@ require 'logbert/message'
 module Logbert
   
   module Formatters
-    
+        
     class Formatter
       def format(msg)
         raise NotImplementedError
@@ -14,7 +14,20 @@ module Logbert
     class SimpleFormatter < Formatter
       def format(msg)
         level = msg.level.to_s.upcase.ljust(8)
-        "#{level} [time='#{msg.time}' pid='#{msg.pid}' logger='#{msg.logger}'] : #{msg.content}"
+        output = "#{level} [time='#{msg.time}' pid='#{msg.pid}' logger='#{msg.logger}'] : #{msg.content}"
+        if msg.exception
+          output = [output, "\n\nException information:\n", msg.exception, "\n"]
+          
+          backtrace = backtrace = msg.exception.backtrace
+          if backtrace
+            output += [backtrace.join($/), "\n\n"]
+          else
+            output << "(Backtrace is unavailable)\n\n"
+          end
+          
+          output = output.join
+        end
+        return output
       end
     end
     

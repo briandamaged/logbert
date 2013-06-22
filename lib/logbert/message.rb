@@ -2,21 +2,22 @@
 module Logbert
   
   class Message
-    attr_reader :logger, :level, :time, :pid, :options, :content_proc
+    attr_reader :logger, :level, :time, :pid, :exception, :options, :content_proc
     
-    def initialize(logger, level, time, pid, options, content = nil, &content_proc)
+    def initialize(logger, level, time, pid, exception, options, content = nil, &content_proc)
       @logger       = logger
       @level        = level
       @time         = time
       @pid          = pid
+      @exception    = exception
       @options      = options
       
       @content      = content
       @content_proc = content_proc
     end
 
-    def self.create(logger, level, options, content = nil, &content_proc)
-      Message.new logger, level, Time.now, Process.pid, options, content, &content_proc
+    def self.create(logger, level, exception, options, content = nil, &content_proc)
+      Message.new logger, level, Time.now, Process.pid, exception, options, content, &content_proc
     end
 
     # Returns the content.  If the content has not been created yet,

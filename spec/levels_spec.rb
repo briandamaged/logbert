@@ -190,9 +190,9 @@ describe Logbert::LevelManager do
         level_manager.level_for("foo").should === level
       end
       
-      it "raises a KeyError when there is no Level with the specified name" do
-        expect{ level_manager.level_for(:bar) }.to raise_exception(KeyError)
-        expect{ level_manager.level_for("bar") }.to raise_exception(KeyError)
+      it "returns nil when there is no Level with the specified name" do
+        level_manager.level_for(:bar).should be_nil
+        level_manager.level_for("bar").should be_nil
       end
       
     end
@@ -212,8 +212,8 @@ describe Logbert::LevelManager do
           level.value.should == 12345
         end
         
-        it "raises a KeyError when allow_virtual_levels = false" do
-          expect{ level_manager.level_for(12345, false) }.to raise_exception(KeyError)
+        it "returns nil when allow_virtual_levels = false" do
+          level_manager.level_for(12345, false).should be_nil
         end
         
       end
@@ -228,18 +228,85 @@ describe Logbert::LevelManager do
         level_manager.level_for(level).should === level
       end
       
-      it "raises a KeyError if the Level is not managed by the LevelManager" do
+      it "returns nil if the Level is not managed by the LevelManager" do
         level_manager.define_level(:foo, 12345)
         
         # This level instance is NOT managed by the LevelManager
         level = Logbert::Level.new(:foo, 12345)
-        expect{ level_manager.level_for(level) }.to raise_exception(KeyError)
+        level_manager.level_for(level).should be_nil
       end
       
     end
     
     
   end
+  
+  
+  
+  
+  
+  context "#level_for!" do
+  
+    context "when given something that can be converted to a Symbol" do
+      
+      it "returns the Level that has the specified name" do
+        level = level_manager.define_level(:foo, 12345)
+        level_manager.level_for!(:foo).should === level
+        level_manager.level_for!("foo").should === level
+      end
+      
+      it "raises a KeyError when there is no Level with the specified name" do
+        expect{ level_manager.level_for!(:bar) }.to raise_exception(KeyError)
+        expect{ level_manager.level_for!("bar") }.to raise_exception(KeyError)
+      end
+      
+    end
+      
+    context "when given an Integer" do
+      
+      it "returns the Level that has the specified value" do
+        level = level_manager.define_level(:foo, 12345)
+        level_manager.level_for!(12345).should === level
+      end
+      
+      context "when there is no Level with the specified value" do
+        
+        it "returns a virtual Level when allow_virtual_levels = true" do
+          level = level_manager.level_for!(12345, true)
+          level.should be_a(Logbert::Level)
+          level.value.should == 12345
+        end
+        
+        it "raises a KeyError when allow_virtual_levels = false" do
+          expect{ level_manager.level_for!(12345, false) }.to raise_exception(KeyError)
+        end
+        
+      end
+      
+    end
+    
+    
+    context "when given a Level" do
+      
+      it "returns the Level if it is managed by the LevelManager" do
+        level = level_manager.define_level(:foo, 12345)
+        level_manager.level_for!(level).should === level
+      end
+      
+      it "raises a KeyError if the Level is not managed by the LevelManager" do
+        level_manager.define_level(:foo, 12345)
+        
+        # This level instance is NOT managed by the LevelManager
+        level = Logbert::Level.new(:foo, 12345)
+        expect{ level_manager.level_for!(level) }.to raise_exception(KeyError)
+      end
+      
+    end
+    
+    
+  end
+  
+  
 
 
 end

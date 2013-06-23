@@ -80,7 +80,7 @@ module Logbert
         raise KeyError, "The alias is already taken: #{alias_name} -> #{preexisting_level}"
       end
       
-      level = self.level_for(level, false)
+      level = self.level_for!(level, false)
 
       @level_to_aliases[level] << alias_name
       @quick_lookup[alias_name] = level
@@ -101,8 +101,12 @@ module Logbert
           return level if level
         end
 
-        raise KeyError, "No Level could be found for input: #{x}"
+        nil
       end
+    end
+    
+    def level_for!(x, allow_virtual_levels = true)
+      self.level_for(x, allow_virtual_levels) or raise KeyError, "No Level could be found for input: #{x}"
     end
     
     alias :[] :level_for

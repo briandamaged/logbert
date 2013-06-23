@@ -16,8 +16,8 @@ module Logbert
         level = msg.level.to_s.upcase.ljust(8)
         output = "#{level} [time='#{msg.time}' pid='#{msg.pid}' logger='#{msg.logger}'] : #{msg.content}"
         if msg.exception
-          output = [output, "\n\nException information:\n", msg.exception, "\n"]
-          
+          output = [output, "\n\nException information:\n", msg.exception.class, ": ", msg.exception.message, "\n"]
+
           backtrace = backtrace = msg.exception.backtrace
           if backtrace
             output += [backtrace.join($/), "\n\n"]

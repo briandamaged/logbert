@@ -17,7 +17,7 @@ module Logbert
     end
     
     def level_inherited?
-      !!@level
+      !@level
     end
     
     def level

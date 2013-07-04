@@ -12,8 +12,15 @@ module Logbert
         @stream = stream
       end
       
+      def self.for_path(path)
+        fout = File.open(path, "ab")
+        StreamHandler.new fout
+      end
+      
+      
       def emit(output)
         @stream.puts output
+        @stream.flush
       end
 
     end

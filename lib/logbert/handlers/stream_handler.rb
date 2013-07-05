@@ -5,8 +5,8 @@ module Logbert
   
   module Handlers
     
-    class StreamHandler < BaseHandler
-      attr_accessor :stream
+    class StreamHandler < Logbert::Handlers::BaseHandler
+      attr_reader :stream
       
       def initialize(stream = $stderr)
         @stream = stream

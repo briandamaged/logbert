@@ -89,5 +89,13 @@ By default, Loggers also inform their parents of any log messages that they rece
 
    Logbert["foo/bar"].warn "This will get recorded by Logbert['foo']'s handlers"
 
+==== Writing log files
+
+At some point, you probably want to write your log output to the filesystem.  Here's how you can do that.  
+
+   Logbert["foo"].handlers << Logbert::Handlers::StreamHandler.for_path("log/application.log")
+
+
+
 
 

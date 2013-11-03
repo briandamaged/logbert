@@ -1,7 +1,7 @@
 
 Gem::Specification.new do |s|
   s.name        = 'logbert'
-  s.version     = '0.6.16'
+  s.version     = '0.6.17'
   s.date        = '2013-11-03'
   s.summary     = "Logging for winners."
   s.description = "Change your logging behaviors without mucking with your code!"

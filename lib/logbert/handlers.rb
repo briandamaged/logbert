@@ -1,3 +1,4 @@
 
-require 'logbert/handlers/stream_handler.rb'
-require 'logbert/handlers/time_rotator.rb'
+require 'logbert/handlers/stream_handler'
+require 'logbert/handlers/time_rotator'
+require 'logbert/handlers/array_handler'

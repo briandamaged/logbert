@@ -1,6 +1,6 @@
 
 module Logbert
-  
+
   NameSeparator = "/"
 
   def self.split_name(name)
@@ -16,5 +16,3 @@ module Logbert
   end
 
 end
-
-

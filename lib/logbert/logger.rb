@@ -3,11 +3,11 @@ require 'logbert/message'
 require 'logbert/handlers'
 
 module Logbert
-  
+
   class Logger
-    
+
     attr_reader :factory, :level_manager, :name, :handlers
-    
+
     def initialize(factory, level_manager, name)
       @factory       = factory
       @level_manager = level_manager
@@ -15,15 +15,15 @@ module Logbert
       @name     = name.dup.freeze
       @handlers = []
     end
-    
+
     def level_inherited?
       !@level
     end
-    
+
     def level
       @level || self.parent.level
     end
-    
+
     def level=(x)
       @level = @level_manager[x]
     end
@@ -40,10 +40,10 @@ module Logbert
     def root
       self.factory.root
     end
-    
+
     def log(level, *args, &block)
       content, options = self.prepare_message_args(*args, &block)
-      
+
       exception = options[:exc_info]
       if exception
         # If the user passed in an exception, then use that one.
@@ -55,15 +55,15 @@ module Logbert
       message = Logbert::Message.create(self, @level_manager[level], exception, options, content, &block)
       handle_message(message)
     end
-    
-    
+
+
     def to_s
       @name
     end
-    
+
     protected
-    
-    
+
+
     # This method will be unnecessary once we upgrade to Ruby 2.x
     def prepare_message_args(*args, &block)
       if args.size == 0
@@ -93,4 +93,3 @@ module Logbert
   end
 
 end
-

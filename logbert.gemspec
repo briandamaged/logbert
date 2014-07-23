@@ -9,5 +9,8 @@ Gem::Specification.new do |s|
   s.email       = 'constructible.truth@gmail.com'
   s.files       = Dir["lib/**/*.rb"]
   s.license     = "MIT"
+
+  s.add_runtime_dependency 'lockfile', '~> 2.1.3'
+  s.add_runtime_dependency 'redis', '~> 3.1.0'
 end
 

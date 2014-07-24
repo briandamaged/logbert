@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'logbert/handlers/base_handler'
 require 'lockfile'
+require 'zlib'
 
 module Logbert
   module Handlers
@@ -113,8 +114,44 @@ module Logbert
         post_process if performed_swap
       end
 
+      # This will essentially perform at most two things:
+      # 1.) Delete, if any, old log files based upon max_logs
+      # 2.) Compress older log files
       def post_process
-        # TODO
+        # Delete, if any, old log files based upon max_logs
+        old_logs = get_old_logs
+        if old_logs.length > @max_logs
+          # Grab the files to delete
+          delete_count = old_logs.length - @max_logs
+          files_to_delete = old_logs.sort_by{|f| File.ctime(f)}[0..delete_count - 1]
+          files_to_delete.each {|f| File.delete(f)}
+        end
+
+        # Compress older log files (unless already compressed)
+        old_logs = get_old_logs
+        old_logs.each do |log|
+          unless File.extname(log) == ".gz"
+            # Compress the file
+            gzip(log)
+            # Delete the actual log file
+            File.delete(log)
+          end
+        end
+      end
+
+      def gzip(orig)
+        Zlib::GzipWriter.open("#{file}.gz") do |gz|
+          gz.mtime = File.mtime(orig)
+          gz.orig_name = orig
+          gz.write IO.binread(orig)
+          gz.close
+        end
+      end
+
+      def get_old_logs
+        absolute_dir = File.dirname(@path)
+        older_files = Dir[File.join(absolute_dir, "#{@path}.backup.*")]
+        return older_files
       end
 
       def archive_destination

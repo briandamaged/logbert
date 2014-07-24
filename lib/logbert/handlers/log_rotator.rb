@@ -20,7 +20,7 @@ module Logbert
         time.strftime(@format)
       end
 
-    end # end class LocaltimeFormatter
+    end # class LocaltimeFormatter
 
     ###########################################################################
     # This class is a custom Handler responsible for rotating logs. This      #
@@ -54,58 +54,77 @@ module Logbert
       end
 
       def rotation_required?
-        Time.now > expiration_timestamp
+        return Time.now > @expiration_timestamp
       end
 
-      def attach!
-        # Lockfile.new('file.lock') do
-        #   # some code...
-        # end
+      def already_rotated?
+        return @creation_timestamp <= @expiration_timestamp
+      end
 
-        Lockfile.new(lock_file_name_for(path)) do
-          creation_timestamp   = File.creation_timestamp(path)
-          expiration_timestamp = compute_expiration_timestamp_from(creation_timestamp)
-          file_handle          = File.open(path, "a")
+      def attach_to_logfile!
+        Lockfile.new(lock_file_name_for(@path)) do
+          @creation_timestamp   = File.ctime(path)
+          @expiration_timestamp = compute_expiration_timestamp_from(@creation_timestamp)
+          @file_handle          = File.open(@path, 'a')
         end
       end
 
       def write_message(msg)
+        attach_to_logfile! unless attached?
+        rotate_logs! if rotation_required?
+        emit(msg)
+      end
+
+      def emit(output)
+        @file_handle.puts output
+        @file_handle.flush
+      end
+
+      def compute_expiration_timestamp_from(timestamp)
+        return timestamp + @interval
+      end
+
+      def rotate_logs!
+        performed_swap = false
+
+        Lockfile.new(lock_file_name_for(@path)) do
+          # Double-check that the file wasn't already rotated
+          unless already_rotated?
+            performed_swap = true
+
+            # Close the old log
+            if @file_handle and not @file_handle.closed?
+              @file_handle.close
+            end
+
+            # Rename the old log
+            if File.exists? @path
+              FileUtils.mv @path, archive_destination
+            end
+
+            # Set the file handle to nil now
+            @file_handle = nil
+          end
+        end # Lockfile lock
+
+        attach_to_logfile! unless attached?
+
+        # Post-Processing logic if the rotation was performed
+        post_process if performed_swap
+      end
+
+      def post_process
         # TODO
       end
 
-      def swap!
-        # TODO
+      def archive_destination
+        timestamp = @timestamp_formatter.format(@creation_timestamp)
+        dest = "#{@path}.backup.#{timestamp}"
+        return dest
       end
 
-      # def rotate_log!
-      #   if @stream and not @stream.closed?
-      #     @stream.close
-      #   end
+      private :archive_destination, :post_process
+    end # class LogRotator
 
-      #   if File.exists? @path
-      #     FileUtils.mv @path, archive_destination
-      #   end
-
-      #   @stream = File.open(@path, "ab")
-
-      #   @expiration_time = Time.now + @interval
-      # end
-
-      # def emit(output)
-      #   rotate_log! if rotation_needed?
-      #   @stream.puts output
-      #   @stream.flush
-      # end
-
-      # private
-
-      # def archive_destination
-      #   timestamp = @timestamp_formatter.format(File.ctime(@path))
-      #   dest = "#{path}.#{timestamp}"
-      #   return dest
-      # end
-
-    end # end class LogRotator
-
-  end # end module Handlers
-end # end module Logbert
+  end # module Handlers
+end # module Logbert

@@ -1,6 +1,7 @@
 
 require 'logbert/message'
 require 'logbert/handlers'
+require 'logbert/consumers'
 
 module Logbert
 

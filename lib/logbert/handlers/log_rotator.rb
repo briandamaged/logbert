@@ -36,14 +36,12 @@ module Logbert
       attr_reader :file_handle, :timestamp_formatter, :interval
       attr_reader :creation_timestamp, :expiration_timestamp, :max_logs
       attr_reader :path
-      Lockfile.debug = true
 
       def initialize(path, options = {})
         @path                = path
-        @max_logs            = options.fetch(:max_logs, 5)
+        @max_logs            = options.fetch(:max_logs, nil)
         @timestamp_formatter = options.fetch(:timestamp_formatter, LocaltimeFormatter.new)
         @interval            = options.fetch(:interval, (24 * 60 * 60))
-
       end
 
       def attached?
@@ -63,7 +61,7 @@ module Logbert
       end
 
       def attach_to_logfile!
-        Lockfile.new(lock_file_name_for(@path)) do
+        lock do
           @creation_timestamp   = File.ctime(path)
           @expiration_timestamp = compute_expiration_timestamp_from(@creation_timestamp)
           @file_handle          = File.open(@path, 'a')
@@ -85,10 +83,16 @@ module Logbert
         return timestamp + @interval
       end
 
+      def lock(&block)
+        Lockfile.new(lock_file_name_for(@path)) do
+          block.call
+        end
+      end
+
       def rotate_logs!
         performed_swap = false
 
-        Lockfile.new(lock_file_name_for(@path)) do
+        lock do
           # Double-check that the file wasn't already rotated
           unless already_rotated?
             performed_swap = true
@@ -119,12 +123,14 @@ module Logbert
       # 2.) Compress older log files
       def post_process
         # Delete, if any, old log files based upon max_logs
-        old_logs = get_old_logs
-        if old_logs.length > @max_logs
-          # Grab the files to delete
-          delete_count = old_logs.length - @max_logs
-          files_to_delete = old_logs.sort_by{|f| File.ctime(f)}[0..delete_count - 1]
-          files_to_delete.each {|f| File.delete(f)}
+        unless @max_logs.nil?
+          old_logs = get_old_logs
+          if old_logs.length > @max_logs
+            # Grab the files to delete
+            delete_count = old_logs.length - @max_logs
+            files_to_delete = old_logs.sort_by{|f| File.ctime(f)}[0..delete_count - 1]
+            files_to_delete.each {|f| File.delete(f)}
+          end
         end
 
         # Compress older log files (unless already compressed)
@@ -139,11 +145,11 @@ module Logbert
         end
       end
 
-      def gzip(orig)
+      def gzip(file)
         Zlib::GzipWriter.open("#{file}.gz") do |gz|
-          gz.mtime = File.mtime(orig)
-          gz.orig_name = orig
-          gz.write IO.binread(orig)
+          gz.mtime = File.mtime(file)
+          gz.orig_name = file
+          gz.write IO.binread(file)
           gz.close
         end
       end

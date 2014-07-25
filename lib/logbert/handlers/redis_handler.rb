@@ -15,20 +15,18 @@ module Logbert
 
       def format(msg)
         level = msg.level.to_s.upcase.ljust(8)
-        output = {
-          level:       level, 
-          time:        msg.time, 
-          pid:         msg.pid, 
-          logger:      msg.logger, 
-          content:     msg.content,
-          exc_class:   "",
-          exc_message: ""
+        serialized_msg = {
+          level:        level,
+          time:         msg.time,
+          pid:          msg.pid,
+          logger:       msg.logger,
+          options:      msg.options
+          content:      msg.content,
+          content_proc: msg.content_proc
+          exc_info:     nil
         }
-        if msg.exception
-          output[:exc_class] = msg.exception.class
-          output[:exc_message] = msg.exception.message
-        end
-        return output
+        serialized_msg[:exc_info] = msg.exception if msg.exception
+        return serialized_msg
       end
 
       def publish(message)
@@ -36,6 +34,6 @@ module Logbert
       end
 
     end # class RedisQueueHandler
-  
+
   end # module Handlers
 end # module Logbert

@@ -21,9 +21,8 @@ module Logbert
 
     def self.from_json(json_msg)
       l = Level.new(json_msg[:level_name], json_msg[:level_value])
-      logger = nil
       # note: the exception key contains a hash-level representation of an exception
-      Message.create(logger, l, json_msg[:exception], json_msg[:options], json_msg[:content], json_msg[:content_proc])
+      Message.create(json_msg[:logger], l, json_msg[:exception], json_msg[:options], json_msg[:content], json_msg[:content_proc])
     end
 
     def to_json

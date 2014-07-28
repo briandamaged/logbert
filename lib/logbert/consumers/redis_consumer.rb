@@ -20,16 +20,8 @@ module Logbert
         loop do
           msg = redis.brpop(key) # blocking list pop primitive
           @handlers.each do |h|
-            # Deserialize the message
-            exception = msg[:exc_info]
-            if exception
-              # If the user passed in an exception, then use that one.
-              # Otherwise, check the magic $! variable to see if an
-              # exception is currently being handled.
-              exception = $! unless exception.is_a? Exception
-            end
-            message = Logbert::Message.create(self, msg[:level], exception, options, msg[:content], msg[:content_proc])
-            h.handle_message(message)
+            m = Message.from_json(msg)
+            h.handle_message(m)
           end
         end
       end

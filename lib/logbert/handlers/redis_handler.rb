@@ -13,24 +13,8 @@ module Logbert
         @key   = key
       end
 
-      def format(msg)
-        level = msg.level.to_s.upcase.ljust(8)
-        serialized_msg = {
-          level:        level,
-          time:         msg.time,
-          pid:          msg.pid,
-          logger:       msg.logger,
-          options:      msg.options
-          content:      msg.content,
-          content_proc: msg.content_proc
-          exc_info:     nil
-        }
-        serialized_msg[:exc_info] = msg.exception if msg.exception
-        return serialized_msg
-      end
-
       def publish(message)
-        redis.lpush(@key, format(message))
+        redis.lpush(@key, message.to_json)
       end
 
     end # class RedisQueueHandler

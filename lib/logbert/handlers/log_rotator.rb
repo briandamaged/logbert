@@ -34,12 +34,12 @@ module Logbert
     class LogRotator < Logbert::Handlers::BaseHandler
 
       attr_reader :file_handle, :timestamp_formatter, :interval
-      attr_reader :creation_timestamp, :expiration_timestamp, :max_logs
+      attr_reader :expiration_timestamp, :max_backups
       attr_reader :path
 
       def initialize(path, options = {})
         @path                = path
-        @max_logs            = options.fetch(:max_logs, nil)
+        @max_backups         = options.fetch(:max_backups, nil)
         @timestamp_formatter = options.fetch(:timestamp_formatter, LocaltimeFormatter.new)
         @interval            = options.fetch(:interval, (24 * 60 * 60))
       end
@@ -57,24 +57,22 @@ module Logbert
       end
 
       def already_rotated?
-        return @creation_timestamp <= @expiration_timestamp
+        return File.ctime(@path) > @expiration_timestamp
       end
 
       def attach_to_logfile!
         lock do
-          @creation_timestamp   = File.ctime(path)
-          @expiration_timestamp = compute_expiration_timestamp_from(@creation_timestamp)
+          dirname               = File.dirname(File.absolute_path(@path))
+          FileUtils.mkdir_p dirname unless File.exists? dirname
           @file_handle          = File.open(@path, 'a')
+          creation_timestamp    = File.ctime(@path)
+          @expiration_timestamp = compute_expiration_timestamp_from(creation_timestamp)
         end
       end
 
-      def write_message(msg)
+      def emit(output)
         attach_to_logfile! unless attached?
         rotate_logs! if rotation_required?
-        emit(msg)
-      end
-
-      def emit(output)
         @file_handle.puts output
         @file_handle.flush
       end
@@ -107,41 +105,43 @@ module Logbert
               FileUtils.mv @path, archive_destination
             end
 
-            # Set the file handle to nil now
-            @file_handle = nil
           end
         end # Lockfile lock
 
-        attach_to_logfile! unless attached?
+        attach_to_logfile!
 
         # Post-Processing logic if the rotation was performed
         post_process if performed_swap
       end
 
       # This will essentially perform at most two things:
-      # 1.) Delete, if any, old log files based upon max_logs
-      # 2.) Compress older log files
+      # 1.) Compress older log files
+      # 2.) Delete, if any, old log files based upon max_backups
       def post_process
-        # Delete, if any, old log files based upon max_logs
-        unless @max_logs.nil?
-          old_logs = get_old_logs
-          if old_logs.length > @max_logs
-            # Grab the files to delete
-            delete_count = old_logs.length - @max_logs
-            files_to_delete = old_logs.sort_by{|f| File.ctime(f)}[0..delete_count - 1]
-            files_to_delete.each {|f| File.delete(f)}
-          end
-        end
+        compress_backups
+        delete_backups
+      end
 
+      def compress_backups
         # Compress older log files (unless already compressed)
-        old_logs = get_old_logs
-        old_logs.each do |log|
+        get_old_logs.each do |log|
           unless File.extname(log) == ".gz"
             # Compress the file
             gzip(log)
             # Delete the actual log file
             File.delete(log)
           end
+        end
+      end
+
+      def delete_backups
+        # Delete, if any, old log files based upon max_backups
+        unless @max_backups.nil?
+          # Grab all the logs.  Sort from newest to oldest
+          old_logs = get_old_logs.sort_by {|f| File.ctime(f)}.reverse[@max_backups..-1]
+
+          # If we have more than max_backups logs, then delete the extras
+          old_logs.each {|f| File.delete(f)} if old_logs
         end
       end
 
@@ -155,13 +155,13 @@ module Logbert
       end
 
       def get_old_logs
-        absolute_dir = File.dirname(@path)
+        absolute_dir = File.dirname(File.absolute_path(@path))
         older_files = Dir[File.join(absolute_dir, "#{@path}.backup.*")]
         return older_files
       end
 
       def archive_destination
-        timestamp = @timestamp_formatter.format(@creation_timestamp)
+        timestamp = @timestamp_formatter.format(File.ctime(@path))
         dest = "#{@path}.backup.#{timestamp}"
         return dest
       end

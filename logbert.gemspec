@@ -1,7 +1,7 @@
 
 Gem::Specification.new do |s|
   s.name        = 'logbert'
-  s.version     = '0.6.19'
+  s.version     = '1.0.0'
   s.date        = '2014-04-29'
   s.summary     = "Logging for winners."
   s.description = "Change your logging behaviors without mucking with your code!"
@@ -9,5 +9,8 @@ Gem::Specification.new do |s|
   s.email       = 'constructible.truth@gmail.com'
   s.files       = Dir["lib/**/*.rb"]
   s.license     = "MIT"
+
+  s.add_runtime_dependency 'lockfile', '~> 2.1.3'
+  s.add_runtime_dependency 'redis', '~> 3.1.0'
 end
 

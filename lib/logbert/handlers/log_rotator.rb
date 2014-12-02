@@ -82,7 +82,10 @@ module Logbert
       end
 
       def lock(&block)
-        Lockfile.new(lock_file_name_for(@path)) do
+        p = lock_file_name_for(@path)
+        FileUtils.mkdir_p File.dirname(p)
+
+        Lockfile.new(p) do
           block.call
         end
       end
